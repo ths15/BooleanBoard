@@ -11,64 +11,110 @@ namespace BooleanBoard
                                     {true, true, false, true},
                                     {false, false, false, false},
                                     {false, false, false, false}};
-                                    
+
         int[] start = new int[] {3, 0};
         int[] end = new int[] {0, 0};
+        int totalRows;
+        int totalCols;
+        int matrixSize;
+
+        int[] directionVectorRow = new int[] {-1, 1, 0, 0};
+        int[] directionVectorColumn = new int[] {0, 0, 1, -1};
+
+        bool[,] visited;
+
+        Queue<int> rowQueue = new Queue<int>();
+        Queue<int> colQueue = new Queue<int>();
+        
+        int nodesInNextLayer = 0;
+
+        public Program()
+        {
+            totalRows = board.GetLength(0);
+            totalCols = board.GetLength(1);
+            matrixSize = board.Length;
+            visited = new bool[totalRows, totalCols];
+
+            for(int i = 0; i < totalRows; i++)
+            {
+                for(int j = 0; j < totalCols; j++)
+                {
+                    visited[i, j] = false;
+                }
+            }
+        }
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
             Program Path = new();
             Console.WriteLine("Number of steps: " + Path.FindPath());
         }
 
-        public int FindPath()
+        private int FindPath()
         {
             int steps = 0;
+            int nodesLeftInLayer = 1;
 
-            int [] current = start;
+            bool reachedEnd = false;
 
-            while(!end.SequenceEqual(current))
+            rowQueue.Enqueue(start[0]);
+            colQueue.Enqueue(start[1]);
+
+            visited[start[0], start[1]] = true;
+
+            while(rowQueue.Count > 0)
             {
-                if(current[0] > end[0])
+                int currRow = rowQueue.Dequeue();
+                int  currCol = colQueue.Dequeue();
+
+                if(currRow == end[0] && currCol == end[1])
                 {
-                    if(current[0] > end[0])
-                    {
-                        current[0]--;
-                        steps++;
-                    }
-                    else
-                    {
-                        current[0]++;
-                        steps++;
-                    }
-                }
-                else
-                {
-                    if(current[1] > end[1])
-                    {
-                        current[1]--;
-                        steps++;
-                    }
-                    else
-                    {
-                        current[1]++;
-                        steps++;
-                    }
+                    reachedEnd = true;
+                    break;
                 }
 
-                Console.WriteLine("Current steps: " + steps);
-                
+                ExploreNeighbors(currRow, currCol);
+
+                nodesLeftInLayer--;
+
+                if(nodesLeftInLayer == 0)
+                {
+                    nodesLeftInLayer = nodesInNextLayer;
+                    nodesInNextLayer = 0;
+                    steps++;
+                }
             }
 
-            /*
-            foreach(bool i in board)
+            if(reachedEnd)
             {
-                Console.WriteLine(i);
+                return steps;
             }
-            */
+            return -1;
+        }
 
-            return steps;
+        private void ExploreNeighbors(int row, int col)
+        {
+            for(int i = 0; i < 4; i++)
+            {
+                int newRow = row + directionVectorRow[i];
+                int newCol = col + directionVectorColumn[i];
+
+                if(newRow < 0 || newCol < 0)
+                    continue;
+                if(newRow >= totalRows || newCol >= totalCols)
+                    continue;
+
+                if(visited[newRow, newCol] == true)
+                    continue;
+                if(board[newRow, newCol] == true)
+                    continue;
+
+                rowQueue.Enqueue(newRow);
+                colQueue.Enqueue(newCol);
+
+                visited[newRow, newCol] = true;
+                nodesInNextLayer++;
+            }
         }
 
     }
